@@ -96,7 +96,7 @@ class JointAttnProcessor2_0:
             query = torch.cat([query, encoder_hidden_states_query_proj], dim=2)
             key = torch.cat([key, encoder_hidden_states_key_proj], dim=2)
             value = torch.cat([value, encoder_hidden_states_value_proj], dim=2)
-            value[:,:,-154:] *= -self.scale
+            value[:,:,-154:] *= -self.scale 
 
         hidden_states = F.scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False, attn_mask=self.attn_mask)
         hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
