@@ -29,7 +29,7 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     # attn_mask = torch.ones((1, 4404, 4404)).bool()
     # # attn_mask[:,-154*2:,-154*2:] = False #text cannot see each other 
     # # attn_mask[:,-154*2:-154,-154*2:-154] = True # positive prompt can see each other   
-    # attn_mask[:,-154:,154:] = False 
+    # attn_mask[:,-154:,154:] = False  #missing negative sign
     # # attn_mask[:,-154*2:,-154*2:] = False
     # # attn_mask[:,-154*2:-154,-154*2:-154] = True
     
@@ -83,12 +83,18 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
 
     negative_prompt_length = [len(pipe.tokenizer(neg_prompt).input_ids), len(pipe.tokenizer_3(neg_prompt).input_ids)]
     attn_mask = torch.ones((1, 4404, 4404)).bool()
-    attn_mask[:,-154:,-154:] = False
-
+    attn_mask[:,-154:,:] = False
+        
     attn_mask[:,-154+negative_prompt_length[0]:-77:,:] = False
     attn_mask[:,:,-154+negative_prompt_length[0]:-77] = False
     attn_mask[:,-77+negative_prompt_length[1]:,:] = False
     attn_mask[:,:,-77+negative_prompt_length[1]:] = False
+    
+    # unflipped negative only attend itself
+    attn_mask[:,-154*2:-154,:] = False  
+    attn_mask[:,:-154*2:-154] = False  
+    attn_mask[:,-154*2:-154,-154*2:-154] = True  
+    
     attn_mask = attn_mask.cuda()
 
     images = []
