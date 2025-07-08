@@ -37,7 +37,7 @@ from PIL import Image
 import json
 from judge import ask_gpt
 
-scores = np.zeros((2, 3))
+scores = np.zeros((2, 2))
 total = 0
 lock = threading.Lock()
 
@@ -58,7 +58,7 @@ async def judge_async(image_ours, image_nag, prompt, neg_prompt):
         total += 1
         df = pd.DataFrame(
             scores / total,
-            columns=["positive", "negative", "quality"],
+            columns=["positive", "negative"],
             index=["ours", "vanilla"],
         )
     print("ID: ", total)
@@ -91,10 +91,10 @@ for j in range(5):
             nag_negative_prompt=neg_prompt,
             generator=torch.manual_seed(seed),
             guidance_scale=0.,
-            nag_scale=6,
+            nag_scale=5,
             num_inference_steps=8,
-            nag_alpha=0.25,
-            nag_tau=2.5
+            nag_alpha=0.6,
+            nag_tau=4
         ).images[0]
         futures.append(
             asyncio.run_coroutine_threadsafe(
