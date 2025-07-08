@@ -1,0 +1,71 @@
+import os
+import json
+import base64
+import io
+from PIL import Image
+from pydantic import BaseModel
+from openai import OpenAI
+import numpy as np
+import random
+import dotenv
+
+dotenv.load_dotenv()
+
+client = OpenAI()
+class Score(BaseModel):
+    first_image_positive: float
+    first_image_negative: float
+    first_image_quality: float
+    second_image_positive: float
+    second_image_negative: float
+    second_image_quality: float
+
+
+def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> list[Score]:
+    if random.random() > 0.5:
+      image1, image2 = image2, image1
+      swapped = True
+    else:
+      swapped = False
+
+    # Encode both images
+    buf1 = io.BytesIO()
+    image1 = image1.resize((448, 448))
+    image1.save(buf1, format="PNG")
+    b64_1 = base64.b64encode(buf1.getvalue()).decode("utf-8")
+
+    buf2 = io.BytesIO()
+    image2.save(buf2, format="PNG")
+    image2 = image2.resize((448, 448))
+    b64_2 = base64.b64encode(buf2.getvalue()).decode("utf-8")
+
+    prompt = (
+        f"You will get 2 images, you should rate them based on how well they follow the positive prompt ({pos}),"
+        f"and how well they AVOID the negative prompt ({neg}), that means the more *unrelated* the negative prompt is to the image the better,"
+        f"and also their quality. For each item you can rate from 0.0-2.0, 0 means bad and 2 means good. "
+        f"When the negative prompt is contradicted with positive prompt or quality (such as good terms, which when in negative prompt, means the user want 'bad' imahes) "
+        "following the negative prompt should "
+        f"not be a reason to decrease score for the positive and quality score. "
+        f"The scoring is releative, so if image 1 is much better than image 2, image 1 should get a score higher than image 2. In this case, 1 or 1.5 means good but not as good as the other one that gets a 2."
+    )
+
+    completion = client.beta.chat.completions.parse(
+        model="gpt-4.1",
+        messages=[
+            {"role": "user", "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_1}"}},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_2}"}},
+            ]},
+        ],
+        response_format=Score,
+        temperature=0.0,
+    )
+
+    answer = completion.choices[0].message.parsed
+
+    if not swapped:
+      answer = np.array(((answer.first_image_positive, answer.second_image_positive), (answer.first_image_negative, answer.second_image_negative), (answer.first_image_quality, answer.second_image_quality)))
+    else:
+      answer = np.array(((answer.second_image_positive, answer.first_image_positive), (answer.second_image_negative, answer.first_image_negative), (answer.second_image_quality, answer.first_image_quality)))
+    return answer

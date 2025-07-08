@@ -20,7 +20,7 @@ if "pipe" not in locals():
 pipe = pipe.to("cuda")
 
 import random
-seed = 8964#123456#int(round(random.random() * 1000000))
+seed = 97832#int(round(random.random() * 1000000))
 
 
 import pandas as pd
@@ -32,6 +32,7 @@ from ours import inference
 import numpy as np
 from PIL import Image
 import json
+from judge import ask_gpt
 
 with open("prompts.json", "r") as f:
     prompts_data = json.load(f)
@@ -42,11 +43,14 @@ score_ours = []
 score_nag = []
 
 # for i in prompts["prompt"]: 
+
+scores = np.zeros((2, 3))
+total = 0
 for i in prompts_data:
     prompt = i["pos"]
     neg_prompt = i["neg"]
     # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-    image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=3.5)
+    image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=3.25)
     for block in pipe.transformer.transformer_blocks:
         block.attn.processor = NAGJointAttnProcessor2_0()
         
@@ -61,9 +65,16 @@ for i in prompts_data:
         nag_alpha=0.25,
         nag_tau=2.5
     ).images[0]
+    delta = ask_gpt(image_ours, image_nag, prompt, neg_prompt).T
+    scores += delta
+    total += 1
+    df = pd.DataFrame(scores/total, columns=["positive", "negative", "quality"], index=["ours", "vanilla"])
     
     wandb.log({
         "img": wandb.Image(Image.fromarray(np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)), caption=f"+: {prompt}\n -: {neg_prompt}"),
+        "scores": wandb.Table(dataframe=df),
     })   
+    
+    
 
 
