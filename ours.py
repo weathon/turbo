@@ -85,6 +85,8 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask = torch.ones((1, 4096 + 77*6, 4096 + 77*6)).bool()
     attn_mask[:,-154:,:] = False
     
+    attn_mask[:,-164*3:-154*2,-154:] = False
+    
     attn_mask[:,-154+negative_prompt_length[0]:-77:,:] = False
     attn_mask[:,:,-154+negative_prompt_length[0]:-77] = False
     attn_mask[:,-77+negative_prompt_length[1]:,:] = False
