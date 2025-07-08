@@ -46,7 +46,7 @@ for i in prompts_data:
     prompt = i["pos"]
     neg_prompt = i["neg"]
     # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-    image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=2)
+    image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=4)
     for block in pipe.transformer.transformer_blocks:
         block.attn.processor = NAGJointAttnProcessor2_0()
         
@@ -58,7 +58,7 @@ for i in prompts_data:
         guidance_scale=0.,
         nag_scale=6,
         num_inference_steps=8,
-        nag_alpha=0.25,
+        nag_alpha=0.5,
         nag_tau=2.5
     ).images[0]
     

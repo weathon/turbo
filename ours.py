@@ -90,8 +90,11 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask[:,-77+negative_prompt_length[1]:,:] = False
     attn_mask[:,:,-77+negative_prompt_length[1]:] = False
     
-    # unflipped negative atten to all but cannot be attented
-    attn_mask[:,:,-154*2:-154] = False  
+    # unflipped negative atten to all (but not flipped neg) but cannot be attented, it should be able to atten itself but it should not atten the flipped neg
+    attn_mask[:,:,-154*2:-154] = False 
+    attn_mask[:,-154*2:-154,-154*2:-154] = True 
+    attn_mask[:,-154*2:-154,-154:] = False 
+    # should we use flex attention to modify the score directly?
     
     attn_mask = attn_mask.cuda()
 
