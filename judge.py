@@ -8,6 +8,11 @@ from openai import OpenAI
 import numpy as np
 import random
 import dotenv
+# do not do that in first one? 
+
+#          positive  negative
+# ours     1.622222  1.800000
+# vanilla  1.788889  1.288889
 
 dotenv.load_dotenv()
 
