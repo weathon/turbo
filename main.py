@@ -69,7 +69,7 @@ for i in prompts_data:
     scores += delta
     total += 1
     df = pd.DataFrame(scores/total, columns=["positive", "negative", "quality"], index=["ours", "vanilla"])
-    
+    print(delta)
     wandb.log({
         "img": wandb.Image(Image.fromarray(np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)), caption=f"+: {prompt}\n -: {neg_prompt}"),
         "scores": wandb.Table(dataframe=df),
