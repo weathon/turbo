@@ -18,7 +18,7 @@ if "pipe" not in locals():
       torch_dtype=torch.bfloat16,
   )
 pipe = pipe.to("cuda")
-
+pipe.set_progress_bar_config(disable=True)
 import random
 seed = 97832#int(round(random.random() * 1000000))
 
@@ -61,6 +61,7 @@ async def judge_async(image_ours, image_nag, prompt, neg_prompt):
             columns=["positive", "negative", "quality"],
             index=["ours", "vanilla"],
         )
+    print("ID: ", total)
     print("delta:\n", delta)
     print(df)
 
@@ -75,38 +76,40 @@ score_nag = []
 # for i in prompts["prompt"]:
 
 futures = []
-for i in prompts_data:
-    prompt = i["pos"]
-    neg_prompt = i["neg"]
-    # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-    image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=3.25)
-    for block in pipe.transformer.transformer_blocks:
-        block.attn.processor = NAGJointAttnProcessor2_0()
+for j in range(5):
+    seed = int(round(random.random() * 1000000))
+    for i in prompts_data:
+        prompt = i["pos"]
+        neg_prompt = i["neg"]
+        # neg_prompt = "low quality, blurry, bad lighting, poor detail"
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=3)#.25)
+        for block in pipe.transformer.transformer_blocks:
+            block.attn.processor = NAGJointAttnProcessor2_0()
 
-    image_nag = pipe(
-        prompt,
-        nag_negative_prompt=neg_prompt,
-        generator=torch.manual_seed(seed),
-        guidance_scale=0.,
-        nag_scale=6,
-        num_inference_steps=8,
-        nag_alpha=0.25,
-        nag_tau=2.5
-    ).images[0]
-    futures.append(
-        asyncio.run_coroutine_threadsafe(
-            judge_async(image_ours, image_nag, prompt, neg_prompt),
-            loop,
+        image_nag = pipe(
+            prompt,
+            nag_negative_prompt=neg_prompt,
+            generator=torch.manual_seed(seed),
+            guidance_scale=0.,
+            nag_scale=6,
+            num_inference_steps=8,
+            nag_alpha=0.25,
+            nag_tau=2.5
+        ).images[0]
+        futures.append(
+            asyncio.run_coroutine_threadsafe(
+                judge_async(image_ours, image_nag, prompt, neg_prompt),
+                loop,
+            )
         )
-    )
-    wandb.log({
-        "img": wandb.Image(
-            Image.fromarray(
-                np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)
-            ),
-            caption=f"+: {prompt}\n -: {neg_prompt}",
-        )
-    })
+        wandb.log({
+            "img": wandb.Image(
+                Image.fromarray(
+                    np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)
+                ),
+                caption=f"+: {prompt}\n -: {neg_prompt}",
+            )
+        })
 for f in futures:
     f.result()
 

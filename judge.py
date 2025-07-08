@@ -41,7 +41,7 @@ def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> lis
 
     prompt = (
         f"You will get 2 images, you should rate them based on how well they follow the positive prompt ({pos}),"
-        f"and how well they AVOID the negative prompt ({neg}), that means the more *unrelated* the negative prompt is to the image the better,"
+        f"and how well they AVOID the negative prompt ({neg}), that means the more *unrelated* the negative prompt is to the image the higher score, only give 2 if the negative item is completely avoided without any artifacts, "
         f"and also their quality. For each item you can rate from 0.0-2.0, 0 means bad and 2 means good. "
         f"When the negative prompt is contradicted with positive prompt or quality (such as good terms, which when in negative prompt, means the user want 'bad' imahes) "
         "following the negative prompt should "
@@ -50,7 +50,7 @@ def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> lis
     )
 
     completion = client.beta.chat.completions.parse(
-        model="gpt-4.1",
+        model="gpt-4o",
         messages=[
             {"role": "user", "content": [
                 {"type": "text", "text": prompt},
