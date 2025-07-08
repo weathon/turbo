@@ -94,7 +94,9 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask[:,:,-154*2:-154] = False 
     attn_mask[:,-154*2:-154,-154*2:-154] = True 
     attn_mask[:,-154*2:-154,-154:] = False 
-    # should we use flex attention to modify the score directly?
+    attn_mask[:,-154*2:-154,4096:-154*2] = False 
+    
+    # should we use flex attention to modify the score directly? only part would be negative
     
     attn_mask = attn_mask.cuda()
 
