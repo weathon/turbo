@@ -13,6 +13,10 @@ from diffusers.utils.torch_utils import is_torch_version, maybe_allow_in_graph
 from diffusers.models.attention_processor import (
     Attention
 )
+from torch.nn.attention.flex_attention import flex_attention
+print("compiling flex attention")
+flex_attention = torch.compile(flex_attention)
+print("flex attention compiled")
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -37,12 +41,11 @@ else:
 class JointAttnProcessor2_0:
     """Attention processor used typically in processing the SD3-like self-attention projections."""
 
-    def __init__(self, scale=4, attn_mask=None, neg_prompt_length=(0, 0)):
+    def __init__(self, attn_scale=None, neg_prompt_length=(0, 0)):
         if not hasattr(F, "scaled_dot_product_attention"):
             raise ImportError("JointAttnProcessor2_0 requires PyTorch 2.0, to use it, please upgrade PyTorch to 2.0.")
-        self.attn_mask = attn_mask
+        self.attn_scale = attn_scale
         self.neg_prompt_length = neg_prompt_length
-        self.scale = scale
 
     def __call__(
         self,
@@ -72,7 +75,7 @@ class JointAttnProcessor2_0:
             query = attn.norm_q(query)
         if attn.norm_k is not None:
             key = attn.norm_k(key)
-        attn_mask = None
+            
         if encoder_hidden_states is not None:
             encoder_hidden_states_query_proj = attn.add_q_proj(encoder_hidden_states)
             encoder_hidden_states_key_proj = attn.add_k_proj(encoder_hidden_states)
@@ -93,14 +96,13 @@ class JointAttnProcessor2_0:
             if attn.norm_added_k is not None:
                 encoder_hidden_states_key_proj = attn.norm_added_k(encoder_hidden_states_key_proj)
 
-            query = torch.cat([query, encoder_hidden_states_query_proj, encoder_hidden_states_query_proj[:,:,-154:]], dim=2)
-            key = torch.cat([key, encoder_hidden_states_key_proj, encoder_hidden_states_key_proj[:,:,-154:]], dim=2)
-            value = torch.cat([value, encoder_hidden_states_value_proj, encoder_hidden_states_value_proj[:,:,-154:]], dim=2)
-            value[:,:,-154:] *= -self.scale  
-            assert query.shape[2] == 4096 + 154 * 3
-        hidden_states = F.scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False, attn_mask=self.attn_mask)
-        # hidden_states[:,:,-154*2:-154] = hidden_states[:,:,-154:]
-        hidden_states = hidden_states[:,:,:-154]
+            query = torch.cat([query, encoder_hidden_states_query_proj], dim=2)
+            key = torch.cat([key, encoder_hidden_states_key_proj], dim=2)
+            value = torch.cat([value, encoder_hidden_states_value_proj], dim=2)
+            assert query.shape[2] == 4096 + 154 * 2
+            
+        hidden_states = flex_attention(query, key, value, score_mod=self.attn_scale)
+
         hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
         hidden_states = hidden_states.to(query.dtype)
 

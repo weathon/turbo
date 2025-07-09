@@ -1,5 +1,9 @@
 import torch
 from processor import JointAttnProcessor2_0
+
+
+
+
 def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     # (
     #     pos_prompt_embeds,
@@ -82,33 +86,34 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     )
 
     negative_prompt_length = [len(pipe.tokenizer(neg_prompt).input_ids), len(pipe.tokenizer_3(neg_prompt).input_ids)]
-    attn_mask = torch.ones((1, 4096 + 77*6, 4096 + 77*6)).bool()
-    attn_mask[:,-154:,:] = False
-    
-    attn_mask[:,-164*3:-154*2,-154:] = False
-    
-    attn_mask[:,-154+negative_prompt_length[0]:-77:,:] = False
-    attn_mask[:,:,-154+negative_prompt_length[0]:-77] = False
-    attn_mask[:,-77+negative_prompt_length[1]:,:] = False
-    attn_mask[:,:,-77+negative_prompt_length[1]:] = False
-    
-    # unflipped negative atten to all (but not flipped neg) but cannot be attented, it should be able to atten itself but it should not atten the flipped neg
-    attn_mask[:,:,-154*2:-154] = False 
-    attn_mask[:,-154*2:-154,-154*2:-154] = True 
-    attn_mask[:,-154*2:-154,-154:] = False 
-    attn_mask[:,-154*2:-154,-154*3:-154*2] = False 
-    
+
     # should we use flex attention to modify the score directly? only part would be negative
-    
-    attn_mask = attn_mask.cuda()
+
+
+    attn_scale = torch.ones((1, 4096 + 77*4, 4096 + 77*4))
+
+    attn_scale[:,-154+negative_prompt_length[0]:-77:,:] = -torch.inf
+    attn_scale[:,:,-154+negative_prompt_length[0]:-77] = -torch.inf
+    attn_scale[:,-77+negative_prompt_length[1]:,:] = -torch.inf
+    attn_scale[:,:,-77+negative_prompt_length[1]:] = -torch.inf
+
+
+    attn_scale[:,-154:,-154*2:-154] = -torch.inf  #negative prompt cannot see positive prompt
+    attn_scale[:,-154*2:-154,-154:] = -torch.inf  #positive prompt cannot see negative prompt
+    attn_scale[:,:4096,-154:] = -scale #image sees flipped negative prompt
+
+    attn_scale = attn_scale.cuda()
+    def scale_fn(score, b, h, q_idx, kv_idx):
+        score = score * attn_scale[0].index_select(0, q_idx).index_select(1, kv_idx).flatten()[0]
+        return score
 
     images = []
 
     for block in pipe.transformer.transformer_blocks:
-        block.attn.processor = JointAttnProcessor2_0(scale=scale, attn_mask=attn_mask, neg_prompt_length=negative_prompt_length)
+        block.attn.processor = JointAttnProcessor2_0(attn_scale=scale_fn, neg_prompt_length=negative_prompt_length)
 
     prompt_embeds = torch.cat([pos_prompt_embeds, neg_prompt_embeds], dim=1)
-    # pipe.transformer = torch.compile(pipe.transformer)
+
     image_ours = pipe(
         prompt_embeds=prompt_embeds,
         pooled_prompt_embeds=pos_pooled_prompt_embeds,
