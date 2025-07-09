@@ -93,8 +93,12 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
 
     def scale_fn(score, b, h, q_idx, kv_idx):
         neg_guidance = torch.where(torch.logical_and(q_idx < 4096, kv_idx > 4096 + 154), -scale, 1) 
+        # neg_to_pos = torch.where(torch.logical_and(q_idx > 4096 + 154, torch.logical_and(4096 < kv_idx, kv_idx < 4096 + 154)), -float("inf"), 1) 
+        # pos_to_neg = torch.where(torch.logical_and(kv_idx > 4096 + 154, torch.logical_and(4096 < q_idx, q_idx < 4096 + 154)), -float("inf"), 1) 
+        # pos_to_neg = torch.where(torch.logical_and(kv_idx > 4096 + 154, torch.logical_and(4096 < q_idx, q_idx < 4096 + 154)), True, False) 
+        # return torch.where(pos_to_neg, -float("inf"), score * neg_guidance)
         return score * neg_guidance
-
+    # wait a sec, score neg doesn't mean value negative!!!
 
 
     images = []
