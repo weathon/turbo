@@ -97,7 +97,7 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask[:,-154*2:-154,-154*2:-154] = 0 
     attn_mask[:,-154*2:-154,-154:] = -torch.inf 
     attn_mask[:,-154*2:-154,-154*3:-154*2] = -torch.inf 
-    # attn_mask[:,:,-154:] += -1.0
+    # attn_mask[:,:,-154:] += -1.0 
     
     # should we use flex attention to modify the score directly? only part would be negative
     
