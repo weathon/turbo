@@ -82,21 +82,22 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     )
 
     negative_prompt_length = [len(pipe.tokenizer(neg_prompt).input_ids), len(pipe.tokenizer_3(neg_prompt).input_ids)]
-    attn_mask = torch.ones((1, 4096 + 77*6, 4096 + 77*6)).bool()
-    attn_mask[:,-154:,:] = False
+    attn_mask = torch.zeros((1, 4096 + 77*6, 4096 + 77*6))
+    attn_mask[:,-154:,:] = -torch.inf
     
-    attn_mask[:,-164*3:-154*2,-154:] = False
+    attn_mask[:,-164*3:-154*2,-154:] = -torch.inf
     
-    attn_mask[:,-154+negative_prompt_length[0]:-77:,:] = False
-    attn_mask[:,:,-154+negative_prompt_length[0]:-77] = False
-    attn_mask[:,-77+negative_prompt_length[1]:,:] = False
-    attn_mask[:,:,-77+negative_prompt_length[1]:] = False
+    attn_mask[:,-154+negative_prompt_length[0]:-77:,:] = -torch.inf
+    attn_mask[:,:,-154+negative_prompt_length[0]:-77] = -torch.inf
+    attn_mask[:,-77+negative_prompt_length[1]:,:] = -torch.inf
+    attn_mask[:,:,-77+negative_prompt_length[1]:] = -torch.inf
     
     # unflipped negative atten to all (but not flipped neg) but cannot be attented, it should be able to atten itself but it should not atten the flipped neg
-    attn_mask[:,:,-154*2:-154] = False 
-    attn_mask[:,-154*2:-154,-154*2:-154] = True 
-    attn_mask[:,-154*2:-154,-154:] = False 
-    attn_mask[:,-154*2:-154,-154*3:-154*2] = False 
+    attn_mask[:,:,-154*2:-154] = -torch.inf 
+    attn_mask[:,-154*2:-154,-154*2:-154] = 0 
+    attn_mask[:,-154*2:-154,-154:] = -torch.inf 
+    attn_mask[:,-154*2:-154,-154*3:-154*2] = -torch.inf 
+    # attn_mask[:,:,-154:] += -1.5
     
     # should we use flex attention to modify the score directly? only part would be negative
     
