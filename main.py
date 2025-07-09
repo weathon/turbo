@@ -82,7 +82,7 @@ for j in range(5):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=6)#.25)
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=7)#.25)
         for block in pipe.transformer.transformer_blocks:
             block.attn.processor = NAGJointAttnProcessor2_0()
 
