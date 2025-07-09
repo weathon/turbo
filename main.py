@@ -20,7 +20,6 @@ if "pipe" not in locals():
 pipe = pipe.to("cuda")
 pipe.set_progress_bar_config(disable=True)
 import random
-seed = 97832#int(round(random.random() * 1000000))
 
 
 import pandas as pd
@@ -82,7 +81,7 @@ for j in range(5):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=7)#.25)
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=3.25)#.25)
         for block in pipe.transformer.transformer_blocks:
             block.attn.processor = NAGJointAttnProcessor2_0()
 
