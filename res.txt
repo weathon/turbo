@@ -1,3 +1,3 @@
          positive  negative
-ours     1.714286  1.660714
-vanilla  1.732143  1.178571
+ours     1.696970  1.681818
+vanilla  1.757576  1.242424
