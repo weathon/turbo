@@ -2,6 +2,8 @@ import torch
 from processor import JointAttnProcessor2_0
 
 
+# Precompute sparse attention scale mask
+from collections import defaultdict
 
 
 def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
@@ -89,23 +91,11 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
 
     # should we use flex attention to modify the score directly? only part would be negative
 
-
-    attn_scale = torch.ones((1, 4096 + 77*4, 4096 + 77*4))
-
-    attn_scale[:,-154+negative_prompt_length[0]:-77:,:] = -torch.inf
-    attn_scale[:,:,-154+negative_prompt_length[0]:-77] = -torch.inf
-    attn_scale[:,-77+negative_prompt_length[1]:,:] = -torch.inf
-    attn_scale[:,:,-77+negative_prompt_length[1]:] = -torch.inf
-
-
-    attn_scale[:,-154:,-154*2:-154] = -torch.inf  #negative prompt cannot see positive prompt
-    attn_scale[:,-154*2:-154,-154:] = -torch.inf  #positive prompt cannot see negative prompt
-    attn_scale[:,:4096,-154:] = -scale #image sees flipped negative prompt
-
-    attn_scale = attn_scale.cuda()
     def scale_fn(score, b, h, q_idx, kv_idx):
-        score = score * attn_scale[0].index_select(0, q_idx).index_select(1, kv_idx).flatten()[0]
-        return score
+        neg_guidance = torch.where(torch.logical_and(q_idx < 4096, kv_idx > 4096 + 154), -scale, 1) 
+        return score * neg_guidance
+
+
 
     images = []
 
