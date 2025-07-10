@@ -81,7 +81,8 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
         padding=False
     )
     neg_len = neg_prompt_embeds.shape[1]
-
+    pos_len = pos_prompt_embeds.shape[1]
+    
     prompt_embeds = torch.cat([pos_prompt_embeds, neg_prompt_embeds], dim=1)
     attn_mask = torch.zeros((1, 4096 + prompt_embeds.shape[1], 4096 + prompt_embeds.shape[1] + neg_len))
     
@@ -89,14 +90,14 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask[:,:-neg_len,-2*neg_len:-neg_len] = -torch.inf
     attn_mask[:,-neg_len:,4096+pos_prompt_embeds.shape[1]] = -torch.inf
     
-    # should we use flex attention to modify the score directly? only part would be negative
-    
-    attn_mask = attn_mask.cuda()
-
-    images = []
+    def score_mod(score, b, h, q_idx, kv_idx):
+        mask = torch.logical_and(q_idx > 4096, kv_idx > (4096 + pos_len + neg_len)) # bottom right
+        mask = torch.logical_or(mask, torch.logical_and(q_idx < (4096 + pos_len), (kv_idx > (4096 + pos_len)).logical_and(kv_idx < (4096 + pos_len + neg_len)))) # left
+        mask = torch.logical_or(mask, torch.logical_and(q_idx > (4096 + pos_len), (kv_idx > 4096).logical_and(kv_idx < (4096 + pos_len)))) # top right
+        return torch.where(mask, score, -torch.inf)
 
     for block in pipe.transformer.transformer_blocks:
-        block.attn.processor = JointAttnProcessor2_0(scale=scale, neg_prompt_length=neg_len, attn_mask=attn_mask)
+        block.attn.processor = JointAttnProcessor2_0(scale=scale, neg_prompt_length=neg_len, score_mod=score_mod)
 
     # pipe.transformer = torch.compile(pipe.transformer)
     image_ours = pipe(

@@ -13,6 +13,8 @@ from diffusers.utils.torch_utils import is_torch_version, maybe_allow_in_graph
 from diffusers.models.attention_processor import (
     Attention
 )
+from torch.nn.attention.flex_attention import flex_attention
+flex_attention = torch.compile(flex_attention)
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -37,10 +39,10 @@ else:
 class JointAttnProcessor2_0:
     """Attention processor used typically in processing the SD3-like self-attention projections."""
 
-    def __init__(self, scale=4, attn_mask=None, neg_prompt_length=0):
+    def __init__(self, scale=4, score_mod=None, neg_prompt_length=0):
         if not hasattr(F, "scaled_dot_product_attention"):
             raise ImportError("JointAttnProcessor2_0 requires PyTorch 2.0, to use it, please upgrade PyTorch to 2.0.")
-        self.attn_mask = attn_mask
+        self.score_mod = score_mod
         self.neg_prompt_length = neg_prompt_length
         self.scale = scale
 
@@ -98,7 +100,8 @@ class JointAttnProcessor2_0:
             value = torch.cat([value, encoder_hidden_states_value_proj, encoder_hidden_states_value_proj[:,:,-self.neg_prompt_length:]], dim=2)
             value[:,:,-self.neg_prompt_length:] *= -self.scale  
             
-        hidden_states = F.scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False, attn_mask=self.attn_mask.to(query.dtype))
+        # hidden_states = F.scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False, attn_mask=self.attn_mask.to(query.dtype))
+        hidden_states = flex_attention(query, key, value, score_mod=self.score_mod)
         hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
         hidden_states = hidden_states.to(query.dtype)
 
