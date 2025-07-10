@@ -1,4 +1,5 @@
 # %%
+import wandb.util
 import torch
 from diffusers import StableDiffusion3Pipeline
 
@@ -18,7 +19,7 @@ if "pipe" not in locals():
       torch_dtype=torch.bfloat16,
   )
 pipe = pipe.to("cuda")
-pipe.set_progress_bar_config(disable=True)
+# pipe.set_progress_bar_config(disable=True)
 import random
 
 
@@ -71,13 +72,14 @@ prompts = pd.read_csv("sampled.csv")
 from src.attention_joint_nag import NAGJointAttnProcessor2_0
 score_ours = []
 score_nag = []
-
+import os
 # for i in prompts["prompt"]:
-
+os.system("mkdir -p res/" + wandb.run.id)
+run_id = wandb.run.id
 futures = []
 for j in range(5):
     seed = int(round(random.random() * 1000000))
-    for i in prompts_data:
+    for idx, i in enumerate(prompts_data):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
@@ -101,14 +103,17 @@ for j in range(5):
                 loop,
             )
         )
-        wandb.log({
-            "img": wandb.Image(
-                Image.fromarray(
+        frame = Image.fromarray(
                     np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)
-                ),
-                caption=f"+: {prompt}\n -: {neg_prompt}",
+                )
+        wandb.log({
+            "img": wandb.Image(frame,caption=f"+: {prompt}\n -: {neg_prompt}",
             )
         })
+        frame.save(f"res/{run_id}/{idx}.png")
+        with open("res/" + run_id + "/preview.md", "w") as f:
+            f.write(f"![{idx}]({idx}.png)\n")
+        
 for f in futures:
     f.result()
 
