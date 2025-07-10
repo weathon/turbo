@@ -23,7 +23,7 @@ else:
     XLA_AVAILABLE = False
 
 
-class NAGFluxPipeline(FluxPipeline):
+class NAGFluxPipeline(FluxPipeline): 
     @property
     def do_normalized_attention_guidance(self):
         return self._nag_scale > 1

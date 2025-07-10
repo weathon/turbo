@@ -11,6 +11,7 @@ sys.path.append("Normalized-Attention-Guidance")
 import torch
 from processor import JointAttnProcessor2_0
 from src.pipeline_sd3_nag import NAGStableDiffusion3Pipeline
+from pipeline import StableDiffusion3Pipeline
 
 model_id = "stabilityai/stable-diffusion-3.5-large-turbo"
 if "pipe" not in locals():
@@ -96,7 +97,7 @@ for j in range(5):
         ours_time += time.time() - ours_starts
         ours_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
         
-        nag_starts = time.time()
+        nag_starts = time.time() 
         torch.cuda.reset_peak_memory_stats()
         for block in pipe.transformer.transformer_blocks:
             block.attn.processor = NAGJointAttnProcessor2_0()
@@ -113,6 +114,7 @@ for j in range(5):
         ).images[0]
         nag_time += time.time() - nag_starts
         nag_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
+        # most RAM is model not data, because data is only one layer, no activation
         
         futures.append(
             asyncio.run_coroutine_threadsafe(

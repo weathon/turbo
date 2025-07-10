@@ -44,7 +44,7 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
         pooled_prompt_embeds=pos_pooled_prompt_embeds,
         num_inference_steps=8,
         guidance_scale=0.0,
-        nag_scale=0.0,
+        # nag_scale=0.0,
         generator=torch.manual_seed(seed),
     ).images[0]
     return image_ours
