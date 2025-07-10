@@ -111,7 +111,7 @@ for j in range(5):
             )
         })
         frame.save(f"res/{run_id}/{idx}.png")
-        with open("res/" + run_id + "/preview.md", "w") as f:
+        with open("res/" + run_id + "/preview.md", "a") as f:
             f.write(f"![{idx}]({idx}.png)\n")
         
 for f in futures:
