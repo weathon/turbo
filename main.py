@@ -17,6 +17,7 @@ if "pipe" not in locals():
       model_id,
       torch_dtype=torch.bfloat16,
   )
+  
 pipe = pipe.to("cuda")
 pipe.set_progress_bar_config(disable=True)
 import random
@@ -75,13 +76,17 @@ score_nag = []
 # for i in prompts["prompt"]:
 
 futures = []
+import os
+os.system("rm -r res")
+os.system("mkdir res")
+
 for j in range(5):
     seed = int(round(random.random() * 1000000))
-    for i in prompts_data:
+    for idx,i in enumerate(prompts_data):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=3.25)#.25)
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=4)#.25)
         for block in pipe.transformer.transformer_blocks:
             block.attn.processor = NAGJointAttnProcessor2_0()
 
@@ -101,14 +106,19 @@ for j in range(5):
                 loop,
             )
         )
-        wandb.log({
-            "img": wandb.Image(
-                Image.fromarray(
+        frame = Image.fromarray(
                     np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)
-                ),
-                caption=f"+: {prompt}\n -: {neg_prompt}",
+                )
+        
+        wandb.log({
+            "img": wandb.Image(frame, caption=f"+: {prompt}\n -: {neg_prompt}",
             )
         })
+        
+        frame.save(f"res/{idx}.png")
+        with open("res/main.md", "a") as f:
+            f.write(f"![]({idx}.png)\n")
+        
 for f in futures:
     f.result()
 

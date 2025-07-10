@@ -67,7 +67,7 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
         prompt=prompt,
         prompt_2=prompt,
         prompt_3=prompt,
-        max_sequence_length = 77
+        padding=False
     )
     (
         neg_prompt_embeds,
@@ -78,26 +78,16 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
         prompt=neg_prompt,
         prompt_2=neg_prompt,
         prompt_3=neg_prompt,
-        max_sequence_length = 77
+        padding=False
     )
+    neg_len = neg_prompt_embeds.shape[1]
 
-    negative_prompt_length = [len(pipe.tokenizer(neg_prompt).input_ids), len(pipe.tokenizer_3(neg_prompt).input_ids)]
-    attn_mask = torch.zeros((1, 4096 + 77*6, 4096 + 77*6))
-    attn_mask[:,-154:,:] = -torch.inf
+    prompt_embeds = torch.cat([pos_prompt_embeds, neg_prompt_embeds], dim=1)
+    attn_mask = torch.zeros((1, 4096 + prompt_embeds.shape[1], 4096 + prompt_embeds.shape[1] + neg_len))
     
-    attn_mask[:,-164*3:-154*2,-154:] = -torch.inf
-    
-    attn_mask[:,-154+negative_prompt_length[0]:-77:,:] = -torch.inf
-    attn_mask[:,:,-154+negative_prompt_length[0]:-77] = -torch.inf
-    attn_mask[:,-77+negative_prompt_length[1]:,:] = -torch.inf
-    attn_mask[:,:,-77+negative_prompt_length[1]:] = -torch.inf
-    
-    # unflipped negative atten to all (but not flipped neg) but cannot be attented, it should be able to atten itself but it should not atten the flipped neg
-    attn_mask[:,:,-154*2:-154] = -torch.inf 
-    attn_mask[:,-154*2:-154,-154*2:-154] = 0 
-    attn_mask[:,-154*2:-154,-154:] = -torch.inf 
-    attn_mask[:,-154*2:-154,-154*3:-154*2] = -torch.inf 
-    # attn_mask[:,:,-154:] += -1.0 
+    attn_mask[:,-neg_len-pos_prompt_embeds.shape[1]:,-neg_len:] = -torch.inf
+    attn_mask[:,:-neg_len,-2*neg_len:-neg_len] = -torch.inf
+    attn_mask[:,-neg_len:,4096+pos_prompt_embeds.shape[1]] = -torch.inf
     
     # should we use flex attention to modify the score directly? only part would be negative
     
@@ -106,9 +96,8 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     images = []
 
     for block in pipe.transformer.transformer_blocks:
-        block.attn.processor = JointAttnProcessor2_0(scale=scale, attn_mask=attn_mask, neg_prompt_length=negative_prompt_length)
+        block.attn.processor = JointAttnProcessor2_0(scale=scale, neg_prompt_length=neg_len, attn_mask=attn_mask)
 
-    prompt_embeds = torch.cat([pos_prompt_embeds, neg_prompt_embeds], dim=1)
     # pipe.transformer = torch.compile(pipe.transformer)
     image_ours = pipe(
         prompt_embeds=prompt_embeds,
