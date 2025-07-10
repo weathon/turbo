@@ -51,7 +51,7 @@ loop_thread = threading.Thread(target=_run_loop, args=(loop,), daemon=True)
 loop_thread.start()
 
 async def judge_async(image_ours, image_nag, prompt, neg_prompt):
-    global scores, total
+    global scores, total, wandb
     delta = await asyncio.to_thread(ask_gpt, image_ours, image_nag, prompt, neg_prompt)
     delta = delta.T
     with lock:
@@ -65,6 +65,13 @@ async def judge_async(image_ours, image_nag, prompt, neg_prompt):
     print("ID: ", total)
     print("delta:\n", delta)
     print(df)
+    wandb.log({
+        "step": total,
+        "score_board": wandb.Table(
+            data=df,
+        ),
+    })
+    
 
 with open("prompts.json", "r") as f:
     prompts_data = json.load(f)
