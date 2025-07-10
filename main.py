@@ -83,7 +83,7 @@ for j in range(5):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=2)#.25)
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=1.2)#.25)
         for block in pipe.transformer.transformer_blocks:
             block.attn.processor = NAGJointAttnProcessor2_0()
 
@@ -92,10 +92,10 @@ for j in range(5):
             nag_negative_prompt=neg_prompt,
             generator=torch.manual_seed(seed),
             guidance_scale=0.,
-            nag_scale=5,
+            nag_scale=7,
             num_inference_steps=8,
-            nag_alpha=0.6,
-            nag_tau=4
+            nag_alpha=0.5,
+            nag_tau=5
         ).images[0]
         futures.append(
             asyncio.run_coroutine_threadsafe(

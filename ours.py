@@ -91,8 +91,6 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask[:,-neg_len:,4096:4096+pos_len] = False # neg cannot see positive prompt
     attn_mask = attn_mask.cuda()
 
-    images = []
-
     for block in pipe.transformer.transformer_blocks:
         block.attn.processor = JointAttnProcessor2_0(scale=scale, attn_mask=attn_mask, neg_prompt_length=neg_len)
 

@@ -43,8 +43,10 @@ prompts = ds["train"]["caption1"]
 random.shuffle(prompts)
 for i in prompts:
     prompt = i
-    neg_prompt = "low quality, blurry, poor detail, poor resolution"
-    image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=0.5)
+    neg_prompt = "low quality"
+    image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=0.1)
+    
+    
     for block in pipe.transformer.transformer_blocks:
         block.attn.processor = NAGJointAttnProcessor2_0()
         
@@ -54,7 +56,7 @@ for i in prompts:
         nag_negative_prompt=neg_prompt,
         generator=torch.manual_seed(seed),
         guidance_scale=0.,
-        nag_scale=4,
+        nag_scale=5,
         num_inference_steps=8,
         nag_alpha=0.25,
         nag_tau=2.5

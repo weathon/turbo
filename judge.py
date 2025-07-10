@@ -60,7 +60,7 @@ def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> lis
             ]},
         ],
         response_format=Score,
-        temperature=0.0,
+        reasoning_effort="low"
     )
 
     answer = completion.choices[0].message.parsed
