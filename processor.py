@@ -94,7 +94,7 @@ class JointAttnProcessor2_0:
                 encoder_hidden_states_key_proj = attn.norm_added_k(encoder_hidden_states_key_proj)
 
             query = torch.cat([query, encoder_hidden_states_query_proj], dim=2)
-            key = torch.cat([key, encoder_hidden_states_key_proj, -encoder_hidden_states_key_proj[:,:,-self.neg_prompt_length:]], dim=2)
+            key = torch.cat([key, encoder_hidden_states_key_proj, encoder_hidden_states_key_proj[:,:,-self.neg_prompt_length:]], dim=2)
             value = torch.cat([value, encoder_hidden_states_value_proj, encoder_hidden_states_value_proj[:,:,-self.neg_prompt_length:]], dim=2)
             value[:,:,-self.neg_prompt_length:] *= -self.scale  
             

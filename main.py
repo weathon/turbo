@@ -73,17 +73,31 @@ from src.attention_joint_nag import NAGJointAttnProcessor2_0
 score_ours = []
 score_nag = []
 import os
+import time
+
 # for i in prompts["prompt"]:
 os.system("mkdir -p res/" + wandb.run.id)
 run_id = wandb.run.id
 futures = []
+ours_time = 0
+nag_time = 0
+ours_max_mem = 0
+nag_max_mem = 0
+
 for j in range(5):
     seed = int(round(random.random() * 1000000))
     for idx, i in enumerate(prompts_data):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
+        ours_starts = time.time()
+        torch.cuda.reset_peak_memory_stats()
         image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=1.2)#.25)
+        ours_time += time.time() - ours_starts
+        ours_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
+        
+        nag_starts = time.time()
+        torch.cuda.reset_peak_memory_stats()
         for block in pipe.transformer.transformer_blocks:
             block.attn.processor = NAGJointAttnProcessor2_0()
 
@@ -97,6 +111,9 @@ for j in range(5):
             nag_alpha=0.5,
             nag_tau=5
         ).images[0]
+        nag_time += time.time() - nag_starts
+        nag_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
+        
         futures.append(
             asyncio.run_coroutine_threadsafe(
                 judge_async(image_ours, image_nag, prompt, neg_prompt),
@@ -106,9 +123,13 @@ for j in range(5):
         frame = Image.fromarray(
                     np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)
                 )
+        
         wandb.log({
-            "img": wandb.Image(frame,caption=f"+: {prompt}\n -: {neg_prompt}",
-            )
+            "img": wandb.Image(frame,caption=f"+: {prompt}\n -: {neg_prompt}"),
+            "ours_time": ours_time / (idx + 1),
+            "nag_time": nag_time / (idx + 1),
+            "ours_max_mem": ours_max_mem / (idx + 1),
+            "nag_max_mem": nag_max_mem / (idx + 1),
         })
         frame.save(f"res/{run_id}/{idx}.png")
         with open("res/" + run_id + "/preview.md", "a") as f:

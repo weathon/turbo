@@ -43,11 +43,11 @@ def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> lis
     b64_2 = base64.b64encode(buf2.getvalue()).decode("utf-8")
 
     prompt = (
-        f"You will get 2 images, you should rate them based on how well they follow the positive prompt and quality of the image ({pos}),"
-        f"and how well they AVOID the negative prompt ({neg}), that means the more *unrelated* the negative prompt is to the image the higher score, only give 2 if the negative item is completely avoided without any artifacts, "
-        f"For each item you can rate from 0.0-2.0, 0 means bad and 2 means good. "
+        f"You will get 2 images, you should rate them from 0-10 based on how well they follow the positive prompt and quality of the image ({pos}),"
+        f"and how well they AVOID the negative prompt ({neg}), that means the more *unrelated* the negative prompt is to the image the higher score, only give 10 if the negative item is completely avoided without any artifacts, "
+        f"For each item you can rate from 0.0-10.0, 0 means bad and 10 means good. Your score should be fine grained to 1"
         f"Important: When the negative prompt is contradicted with positive prompt or quality following the negative prompt should not be a reason to decrease score for the positive and quality score. (such as negative prompt being 'car' while positive being 'New York street', showing no cars should not be a reason to decrease score for positive, even though it does not look like a New York street anymore. Similar goes for removing an important part of an item, like a car but with negative prompt of wheels, removing wheels making it less of a car, however, when you rate it, you should NOT decrease the score based on this) "
-        f"The scoring is releative, so if image 1 is much better than image 2, image 1 should get a score higher than image 2. In this case, 1 or 1.5 means good but not as good as the other one that gets a 2. Your score should be as fine grained to 0.1"
+        # f"The scoring is releative, so if image 1 is much better than image 2, image 1 should get a score higher than image 2. In this case, 1 or 1.5 means good but not as good as the other one that gets a 2. Your score should be as fine grained to 0.1"
     ) 
 
     completion = client.beta.chat.completions.parse(
