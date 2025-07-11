@@ -1,6 +1,6 @@
 import torch
 from processor import JointAttnProcessor2_0
-def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
+def inference(pipe, prompt, neg_prompt, seed=0, scale=3, offset=0):
     (
         pos_prompt_embeds,
         _,
@@ -21,8 +21,11 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
         prompt=neg_prompt,
         prompt_2=neg_prompt,
         prompt_3=neg_prompt,
-        # padding=False
+        padding=False
     )
+    
+    
+    
     
     neg_len = neg_prompt_embeds.shape[1]
     pos_len = pos_prompt_embeds.shape[1]
@@ -32,12 +35,12 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask[:,-neg_len-pos_len:,-neg_len:] = -torch.inf #prompts cannot see -neg 
     attn_mask[:,:-neg_len,-2*neg_len:-neg_len] = -torch.inf # image and positive prompt cannot see neg
     attn_mask[:,-neg_len:,4096:4096+pos_len] = -torch.inf # neg cannot see positive prompt
-    # attn_mask[:,:4096,-neg_len:] = 0.0 # 0.08 image seeing less -neg
+    attn_mask[:,:4096,-neg_len:] -= offset # 0.08 image seeing less -neg should be -= not =?
     
     
     # fallback to original
-    attn_mask[:,-neg_len:,:] = -torch.inf
-    attn_mask[:,:,-neg_len*2:] = -torch.inf
+    # attn_mask[:,-neg_len:,:] = -torch.inf
+    # attn_mask[:,:,-neg_len*2:] = -torch.inf
     
     
     attn_mask = attn_mask.cuda()
