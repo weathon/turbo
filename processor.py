@@ -72,7 +72,7 @@ class JointAttnProcessor2_0:
             query = attn.norm_q(query)
         if attn.norm_k is not None:
             key = attn.norm_k(key)
-
+ 
         if encoder_hidden_states is not None:
             encoder_hidden_states_query_proj = attn.add_q_proj(encoder_hidden_states)
             encoder_hidden_states_key_proj = attn.add_k_proj(encoder_hidden_states)
