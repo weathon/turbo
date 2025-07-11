@@ -10,7 +10,7 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
         prompt=prompt,
         prompt_2=prompt,
         prompt_3=prompt,
-        padding=False
+        # padding=False
     )
     (
         neg_prompt_embeds,
@@ -21,7 +21,7 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
         prompt=neg_prompt,
         prompt_2=neg_prompt,
         prompt_3=neg_prompt,
-        padding=False
+        # padding=False
     )
     
     neg_len = neg_prompt_embeds.shape[1]
