@@ -14,6 +14,8 @@ from diffusers.models.attention_processor import (
     Attention
 )
 
+from torch.nn.attention.flex_attention import flex_attention
+flex_attention = torch.compile(flex_attention)#, dynamic=True, mode='max-autotune')
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 if is_torch_npu_available():
@@ -97,8 +99,10 @@ class JointAttnProcessor2_0:
             key = torch.cat([key, encoder_hidden_states_key_proj, encoder_hidden_states_key_proj[:,:,-self.neg_prompt_length:]], dim=2)
             value = torch.cat([value, encoder_hidden_states_value_proj, encoder_hidden_states_value_proj[:,:,-self.neg_prompt_length:]], dim=2)
             value[:,:,-self.neg_prompt_length:] *= -self.scale  
+            # key[:,:,-self.neg_prompt_length:] *= -1
             
-        hidden_states = F.scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False, attn_mask=self.attn_mask.to(query.dtype))
+        # hidden_states = F.scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False, attn_mask=self.attn_mask.to(query.dtype))
+        hidden_states = flex_attention(query, key, value, score_mod=self.attn_mask)
         hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
         hidden_states = hidden_states.to(query.dtype)
 

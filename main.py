@@ -100,7 +100,7 @@ for j in range(5):
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
         ours_starts = time.time()
         torch.cuda.reset_peak_memory_stats()
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=1.2)#.25)
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=1)#.25)
         ours_time += time.time() - ours_starts
         ours_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
         
