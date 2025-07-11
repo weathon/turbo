@@ -32,7 +32,7 @@ def inference(pipe, prompt, neg_prompt, seed=0, scale=3):
     attn_mask[:,-neg_len-pos_len:,-neg_len:] = -torch.inf #prompts cannot see -neg 
     attn_mask[:,:-neg_len,-2*neg_len:-neg_len] = -torch.inf # image and positive prompt cannot see neg
     attn_mask[:,-neg_len:,4096:4096+pos_len] = -torch.inf # neg cannot see positive prompt
-    attn_mask[:,:4096,-neg_len:] = -0.1 # image seeing less neg
+    attn_mask[:,:4096,-neg_len:] = -0.08 # image seeing less neg
     attn_mask = attn_mask.cuda()
 
     for block in pipe.transformer.transformer_blocks:
