@@ -36,6 +36,9 @@ ds = load_dataset("sentence-transformers/coco-captions")
 seed = 866737681
 import hpsv2
 
+import ImageReward
+reward_model = ImageReward.load("ImageReward-v1.0")
+
 import wandb
 import random
 from urllib.request import urlretrieve
@@ -49,62 +52,45 @@ metadata_df = pd.read_parquet('metadata.parquet')
 
 run_baseline = False
 
-
-prompts = metadata_df["prompt"][:20]
-random.seed(10)
-score_nag = []
-import os
-os.makedirs("nag_quality", exist_ok=True)
-for idx, prompt in enumerate(prompts[:20]):    
-    neg_prompt = "worst quality, low quality, ugly, deformed, blurry, bad anatomy"
-        
-    for block in pipe.transformer.transformer_blocks:
-        block.attn.processor = NAGJointAttnProcessor2_0()
-    image_nag = pipe(
-        prompt,
-        nag_negative_prompt=neg_prompt,
-        generator=torch.manual_seed(seed),
-        guidance_scale=0.,
-        nag_scale=5,
-        num_inference_steps=8,
-        nag_alpha=0.25,
-        nag_tau=2.5
-    ).images[0]
-    image_nag.save("nag.png")
-    result = hpsv2.score("nag.png", prompt, hps_version="v2.1") 
-    score_nag.append(result[0])
-
-print("Baseline Score NAG:", np.mean(score_nag))
-
-    
 def run():
-    wandb.init(project="VSF")
-    print("Baseline Score NAG:", np.mean(score_nag))
+    wandb.init(project="VSF", config={
+        "scale": 0.4,
+        "offset": -0.15,
+    })
     
-    prompts = metadata_df["prompt"][:20]
+    prompts = metadata_df["prompt"].sample(100)
     random.seed(10)
-    for i in prompts[:20]:
+    for i in prompts:
         prompt = i
-        neg_prompt = "worst quality, low quality, ugly, deformed, blurry, bad anatomy"
+        neg_prompt = "worst quality, ugly, deformed, blurry, poor detail, poor lighting"
         image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=wandb.config.scale, offset=wandb.config.offset)
-        
+        for block in pipe.transformer.transformer_blocks:
+            block.attn.processor = NAGJointAttnProcessor2_0()
+        image_nag = pipe(
+            prompt,
+            nag_negative_prompt=neg_prompt,
+            generator=torch.manual_seed(seed),
+            guidance_scale=0.,
+            nag_scale=5,
+            num_inference_steps=8,
+            nag_alpha=0.25,
+            nag_tau=2.5
+        ).images[0]
+    
         image_ours.save("ours.png")
-        # image_nag.save("nag.png")
-        result = hpsv2.score("ours.png", prompt, hps_version="v2.1") 
-        score_ours.append(result[0])
-        # result = hpsv2.score("nag.png", prompt, hps_version="v2.1")
-        # score_nag.append(result[0])
-        print(f"Score Ours: {np.mean(score_ours)}, Score NAG: {np.mean(score_nag)}")
-        # full = Image.fromarray(np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1))
-        full = Image.fromarray(np.concatenate([np.array(image_ours)], axis=1))
+        image_nag.save("nag.png")
+        score_ours.append(reward_model.score(prompt, image_ours))
+        score_nag.append(reward_model.score(prompt, image_nag))
+        print(f"Ours Score: {score_ours[-1]}, NAG Score: {score_nag[-1]}")
+        full = Image.fromarray(np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1))
         full.save("full.png")
         wandb.log({
             "img": wandb.Image(full, caption=f"+: {prompt}\n -: {neg_prompt}"),
             "ours_score": np.mean(score_ours),
-            # "nag_score": np.mean(score_nag),
+            "nag_score": np.mean(score_nag),
         })   
         
-
+run()
 # sweep_configuration = {
 #     "method": "bayes",
 #     "metric": {"goal": "maximize", "name": "ours_score"},
