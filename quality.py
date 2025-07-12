@@ -54,8 +54,8 @@ run_baseline = False
 
 def run():
     wandb.init(project="VSF", config={
-        "scale": 0.2,
-        "offset": 0.1,
+        "scale": 1.5,
+        "offset": 0.15,
     })
     
     prompts = metadata_df["prompt"].sample(100)

@@ -92,15 +92,14 @@ nag_time = 0
 ours_max_mem = 0
 nag_max_mem = 0
 
-for j in range(5):
-    seed = int(round(random.random() * 1000000))
+for seed in [42, 0, 1, 4242, 1234]:
     for idx, i in enumerate(prompts_data):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
         ours_starts = time.time()
         torch.cuda.reset_peak_memory_stats()
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=4, offset=0.1)
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=2.5, offset=0.0) #2.5
         ours_time += time.time() - ours_starts
         ours_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
         

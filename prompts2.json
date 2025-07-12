@@ -80,83 +80,83 @@
         "neg": "pieces"
     },
     {
-        "pos": "A sleek red bicycle leans against a brick wall, its crank arms ending abruptly with bare metal stubs.\npedals",
+        "pos": "A sleek red bicycle leans against a brick wall, its crank arms ending abruptly with bare metal stubs.\n",
         "neg": "pedals"
     },
     {
-        "pos": "An ornate grandfather clock stands tall in a dim hallway, its glass window revealing an unusually empty space beneath the clock face.\npendulum",
+        "pos": "An ornate grandfather clock stands tall in a dim hallway, its glass window revealing an unusually empty space beneath the clock face.\n",
         "neg": "pendulum"
     },
     {
-        "pos": "A wooden rowboat rocks gently beside an old pier, its varnished sides reflecting the morning light while the oarlocks remain unused.\noars",
+        "pos": "A wooden rowboat rocks gently beside an old pier, its varnished sides reflecting the morning light while the oarlocks remain unused.\n",
         "neg": "oars"
     },
     {
-        "pos": "A towering lighthouse rises from a jagged shoreline, the lantern room showing only open air beneath the iron framework.\nlight",
+        "pos": "A towering house rises from a jagged shoreline, the lantern room showing only open air beneath the iron framework.\n",
         "neg": "light"
     },
     {
-        "pos": "A well-set dining table glitters with crystal glasses and porcelain plates, yet the chandelier above displays rows of empty brass sockets.\nbulbs",
+        "pos": "A well-set dining table glitters with crystal glasses and porcelain plates, yet the chandelier above displays rows of empty brass sockets.\n",
         "neg": "bulbs"
     },
     {
-        "pos": "A cheerful snowman stands in a winter garden, coal eyes and a woolen scarf bright against the snow but the middle of its face is strangely blank.\nnose",
+        "pos": "A cheerful snowman stands in a winter garden, coal eyes and a woolen scarf bright against the snow but the middle of its face is strangely blank.\n",
         "neg": "nose"
     },
     {
-        "pos": "A crisp deck of playing cards is fanned across a velvet table, each surface pristine white without any markings.\nfaces",
+        "pos": "A crisp deck of playing cards is fanned across a velvet table, each surface pristine white without any markings.\n",
         "neg": "faces"
     },
     {
-        "pos": "A medieval suit of armor gleams under museum lights, articulated plates overlapping smoothly while the wrist joints open to the cool air.\ngauntlets",
+        "pos": "A medieval suit of armor gleams under museum lights, articulated plates overlapping smoothly while the wrist joints open to the cool air.\n",
         "neg": "gauntlets"
     },
     {
-        "pos": "A detailed globe spins slowly on a mahogany stand, brilliant blue oceans encircle featureless expanses of land.\ncontinents",
+        "pos": "A detailed globe spins slowly on a mahogany stand, brilliant blue oceans encircle featureless expanses of land.\n",
         "neg": "continents"
     },
     {
-        "pos": "A vintage film camera rests on a wooden shelf, its lens mount revealing a dark hollow at the front of the polished body.\nlens",
+        "pos": "A vintage film camera rests on a wooden shelf, its  mount revealing a dark hollow at the front of the polished body.\n",
         "neg": "lens"
     },
     {
-        "pos": "A grand piano dominates the concert hall stage, its fallboard lifted to reveal a smooth strip of lacquered wood instead of the usual row of ivory.\nkeys",
+        "pos": "A grand piano dominates the concert hall stage, its fallboard lifted to reveal a smooth strip of lacquered wood instead of the usual row of ivory.\n",
         "neg": "keys"
     },
     {
-        "pos": "A vibrant cityscape mural covers the brick wall, skyscrapers and traffic lights painted in detail beneath an expanse of uncolored sky.\nsun",
+        "pos": "A vibrant cityscape mural covers the brick wall, skyscrapers and traffic lights painted in detail beneath an expanse of uncolored sky.\n",
         "neg": "sun"
     },
     {
-        "pos": "An elegant fountain stands in a moonlit courtyard, carved stone basins tiered gracefully but perfectly dry.\nwater",
+        "pos": "An elegant fountain stands in a moonlit courtyard, carved stone basins tiered gracefully but perfectly dry.\n",
         "neg": "water"
     },
     {
-        "pos": "A mountaineer\u2019s backpack rests against a boulder, gear neatly secured while an empty sheath hangs along its side.\nice axe",
+        "pos": "A mountaineer\u2019s backpack rests against a boulder, gear neatly secured while an empty sheath hangs along its side.\n",
         "neg": "ice axe"
     },
     {
-        "pos": "A traditional windmill rises above golden fields, its capped tower casting a shadow though four sturdy spars extend into empty air.\nblades",
+        "pos": "A traditional windmill rises above golden fields, its capped tower casting a shadow though four sturdy spars extend into empty air.\n",
         "neg": "blades"
     },
     {
-        "pos": "A cozy fireplace is framed by rustic stone, fresh logs stacked neatly inside yet no warmth flickers there.\nfire",
+        "pos": "A cozy place is framed by rustic stone, fresh logs stacked neatly inside yet no warmth flickers there.\n",
         "neg": "fire"
     },
     {
-        "pos": "A frosted birthday cake sits on a silver stand, colorful icing swirls covering small holes on its top tier.\ncandles",
+        "pos": "A frosted birthday cake sits on a silver stand, colorful icing swirls covering small holes on its top tier.\n",
         "neg": "candles"
     },
     {
-        "pos": "A rustic wooden door set in a stone wall creaks slightly in the breeze, a round cavity occupying the place where something should grasp.\ndoorknob",
+        "pos": "A rustic wooden door set in a stone wall creaks slightly in the breeze, a round cavity occupying the place where something should grasp.\n",
         "neg": "doorknob"
     },
     {
-        "pos": "A sporty convertible gleams under the palm trees, its dashboard polished but the central column ends in an empty hub.\nsteering wheel",
+        "pos": "A sporty convertible gleams under the palm trees, its dashboard polished but the central column ends in an empty hub.\n",
         "neg": "steering wheel"
     },
     {
-        "pos": "A colorful kite soars high against a clear sky, its diamond frame taut and balanced yet nothing streams behind it.\ntail",
+        "pos": "A colorful kite soars high against a clear sky, its diamond frame taut and balanced yet nothing streams behind it.\n",
         "neg": "tail"
     },
     {
@@ -280,7 +280,7 @@
         "neg": "fur"
     },
     {
-        "pos": "A classic sailboat drifts quietly on a mirror-smooth lake at dawn, its mast silhouetted against pink clouds.",
+        "pos": "A classic boat drifts quietly on a mirror-smooth lake at dawn, its mast silhouetted against pink clouds.",
         "neg": "sail"
     },
     {
@@ -400,83 +400,83 @@
         "neg": "seat"
     },
     {
-        "pos": "A sturdy bicycle frame leans against a brick wall, its chain and pedals intact while the rest of the structure balances lightly on the pavement.\nwheels.",
+        "pos": "A sturdy bicycle frame leans against a brick wall, its chain and pedals intact while the rest of the structure balances lightly on the pavement.\n.",
         "neg": "wheels"
     },
     {
-        "pos": "An elegant silver wristwatch rests on a velvet cushion, its markings clear and case ticking softly though nothing indicates the passing seconds.\nhands.",
+        "pos": "An elegant silver wristwatch rests on a velvet cushion, its markings clear and case ticking softly though nothing indicates the passing seconds.\n.",
         "neg": "hands"
     },
     {
-        "pos": "A small sparrow perches on a wooden fence rail, fluffing its feathers as it tilts its head toward the morning sun.\nwings.",
+        "pos": "A small sparrow perches on a wooden fence rail, fluffing its feathers as it tilts its head toward the morning sun.\n.",
         "neg": "wings"
     },
     {
-        "pos": "A sleek aluminum laptop sits open on a coworking-space table, screen aglow and touchpad active above a wide blank expanse.\nkeyboard.",
+        "pos": "A sleek aluminum laptop sits open on a coworking-space table, screen aglow and touchpad active above a wide blank expanse.\n.",
         "neg": "keyboard"
     },
     {
-        "pos": "A classic cast-iron tea kettle simmers on the stove, steam whispering from the lid while light reflects off its rounded sides.\nspout.",
+        "pos": "A classic cast-iron tea kettle simmers on the stove, steam whispering from the lid while light reflects off its rounded sides.\n.",
         "neg": "spout"
     },
     {
-        "pos": "A tall oak stands by a quiet pond in late autumn, intricate branches stretching like dark lace against the twilight sky.\nleaves.",
+        "pos": "A tall oak stands by a quiet pond in late autumn, intricate branches stretching like dark lace against the twilight sky.\n.",
         "neg": "leaves"
     },
     {
-        "pos": "A pair of stylish tortoiseshell frames rests on a nightstand beside a folded cleaning cloth, their curves catching the lamp\u2019s warm glow.\nlenses.",
+        "pos": "A pair of stylish tortoiseshell frames rests on a nightstand beside a folded cleaning cloth, their curves catching the lamp\u2019s warm glow.\n.",
         "neg": "lenses"
     },
     {
-        "pos": "A grand black piano commands the stage of an empty concert hall, lid raised high and felt hammers visible through an open cavity.\nkeys.",
+        "pos": "A grand black piano commands the stage of an empty concert hall, lid raised high and felt hammers visible through an open cavity.\n.",
         "neg": "keys"
     },
     {
-        "pos": "The skeletal frame of an umbrella is propped open on a rainy sidewalk, slender metal ribs arching outward under drifting drizzle.\nfabric.",
+        "pos": "The skeletal frame of an umbrella is propped open on a rainy sidewalk, slender metal ribs arching outward under drifting drizzle.\n.",
         "neg": "fabric"
     },
     {
-        "pos": "A hardcover novel with ornate gold embossing lies slightly ajar on a study desk, revealing only the inner surfaces of its stiff boards.\npages.",
+        "pos": "A hardcover novel with ornate gold embossing lies slightly ajar on a study desk, revealing only the inner surfaces of its stiff boards.\n.",
         "neg": "pages"
     },
     {
-        "pos": "Crisp lettuce, sliced tomatoes, and grilled chicken are stacked neatly in butcher paper, a drizzle of sauce pooling at the base.\nbread.",
+        "pos": "Crisp lettuce, sliced tomatoes, and grilled chicken are stacked neatly in butcher paper, a drizzle of sauce pooling at the base.\n.",
         "neg": "bread"
     },
     {
-        "pos": "A leather football rests on freshly cut turf under stadium lights, its textured surface seamless along the central seam.\nlaces.",
+        "pos": "A leather football rests on freshly cut turf under stadium lights, its textured surface seamless along the central seam.\n.",
         "neg": "laces"
     },
     {
-        "pos": "A vintage black-body film camera hangs from a photographer\u2019s neck, shutter button poised above a circular opening that leads straight inside.\nlens.",
+        "pos": "A vintage black-body film camera hangs from a photographer\u2019s neck, shutter button poised above a circular opening that leads straight inside.\n.",
         "neg": "lens"
     },
     {
-        "pos": "A quaint timber cottage stands at the edge of the forest, windows glowing warmly within an uninterrupted facade of painted planks.\ndoors.",
+        "pos": "A quaint timber cottage stands at the edge of the forest, windows glowing warmly within an uninterrupted facade of painted planks.\n.",
         "neg": "doors"
     },
     {
-        "pos": "A glossy black fountain pen lies atop an open notebook, its tapered barrel ending in a smooth metal collar.\nnib.",
+        "pos": "A glossy black fountain pen lies atop an open notebook, its tapered barrel ending in a smooth metal collar.\n.",
         "neg": "nib"
     },
     {
-        "pos": "A slender wooden sailing boat bobs gently at the marina, deck lines neatly coiled above an unobstructed stretch from bow to stern.\nmast.",
+        "pos": "A slender wooden sailing boat bobs gently at the marina, deck lines neatly coiled above an unobstructed stretch from bow to stern.\n.",
         "neg": "mast"
     },
     {
-        "pos": "A pair of bright red sneakers sits by the doorstep, fabric uppers maintaining their shape above an airy gap at the bottom.\nsoles.",
+        "pos": "A pair of bright red sneakers sits by the doorstep, fabric uppers maintaining their shape above an airy gap at the bottom.\n.",
         "neg": "soles"
     },
     {
-        "pos": "A tall stone tower rises above the town square, carved archways framing a smooth circular recess high on its facade.\nclock face.",
+        "pos": "A tall stone tower rises above the town square, carved archways framing a smooth circular recess high on its facade.\n.",
         "neg": "clock face"
     },
     {
-        "pos": "A handheld microphone lies on the empty stage, its cylindrical body ending in an exposed capsule of fine wiring.\ngrille.",
+        "pos": "A handheld microphone lies on the empty stage, its cylindrical body ending in an exposed capsule of fine wiring.\n.",
         "neg": "grille"
     },
     {
-        "pos": "A sunburst electric guitar rests on a stand beneath studio lights, pickups gleaming along the polished neck toward the silent bridge.\nstrings.",
+        "pos": "A sunburst electric guitar rests on a stand beneath studio lights, pickups gleaming along the polished neck toward the silent bridge.\n.",
         "neg": "strings"
     },
     {

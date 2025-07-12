@@ -7,7 +7,7 @@ prompts = []
 for prompt in prompts_:
     for p in prompt["prompts"]:
         prompts.append({
-            "pos": p["prompt"],
+            "pos": p["prompt"].replace(p["missing_element"], ""),
             "neg": p["missing_element"],
         }) 
     
