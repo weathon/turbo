@@ -55,8 +55,33 @@ score_nag = []
 import os
 import time
 
+wandb.init(project="VSF_benchmark")
 
 import tqdm
+
+lock = asyncio.Lock()
+async def judge_async(image_ours, prompt, neg_prompt):
+    global scores, total, wandb
+    delta = await asyncio.to_thread(ask_gpt, image_ours, prompt, neg_prompt)
+    delta = delta.T
+    async with lock:
+        scores += delta
+        total += 1
+        df = pd.DataFrame(
+            scores / total,
+            columns=["positive", "negative"],
+            index=["ours", "vanilla"],
+        )
+    print("ID: ", total)
+    print("delta:\n", delta)
+    print(df)
+    wandb.log({
+        "step": total,
+        "score_board": wandb.Table(
+            data=df,
+        ),
+    })
+
 def run(run_id, scale, offset):
     run_id = f"{run_id:03d}"
     seed = 42
@@ -71,19 +96,25 @@ def run(run_id, scale, offset):
         f.write(f"**Scale:** {scale}\n")
         f.write(f"**Offset:** {offset}\n")
         f.write(f"**Seed:** {seed}\n\n")
+        f.write(f"**WandB Run ID:** {wandb.run.id}\n\n")
+        
             
     for idx, i in enumerate(tqdm.tqdm(prompts_data)):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
         image_ours.save(f"benchmark/{run_id}/ours_{idx:03d}.png")
-
+        asyncio.create_task(judge_async(image_ours, prompt, neg_prompt))
+        wandb.log({
+            "ours": wandb.Image(image_ours, caption=f"+: {prompt}\n -: {neg_prompt}"),
+        })
         with open(f"benchmark/{run_id}/preview.md", "a") as f:
             f.write(f"### {idx:03d}\n")
             f.write(f"**Prompt:** {prompt}\n")
             f.write(f"**Negative Prompt:** {neg_prompt}\n")
             f.write(f"![ours](ours_{idx:03d}.png)\n\n")
-
+        
+        wandb
 for i in range(36):
     run_id = i
     scale = random.uniform(0.0, 2.0)
