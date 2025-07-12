@@ -56,7 +56,7 @@ import os
 import time
 
 
-
+import tqdm
 def run(run_id, scale, offset):
     run_id = f"{run_id:03d}"
     seed = 42
@@ -72,7 +72,7 @@ def run(run_id, scale, offset):
         f.write(f"**Offset:** {offset}\n")
         f.write(f"**Seed:** {seed}\n\n")
             
-    for idx, i in enumerate(prompts_data):
+    for idx, i in enumerate(tqdm.tqdm(prompts_data)):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
