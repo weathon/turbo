@@ -54,8 +54,8 @@ run_baseline = False
 
 def run():
     wandb.init(project="VSF", config={
-        "scale": 0.4,
-        "offset": -0.15,
+        "scale": 0.2,
+        "offset": 0.1,
     })
     
     prompts = metadata_df["prompt"].sample(100)
@@ -71,7 +71,7 @@ def run():
             nag_negative_prompt=neg_prompt,
             generator=torch.manual_seed(seed),
             guidance_scale=0.,
-            nag_scale=5,
+            nag_scale=0,#5,
             num_inference_steps=8,
             nag_alpha=0.25,
             nag_tau=2.5

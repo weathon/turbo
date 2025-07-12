@@ -73,7 +73,7 @@ async def judge_async(image_ours, image_nag, prompt, neg_prompt):
     })
     
 
-with open("prompts.json", "r") as f:
+with open("prompts2.json", "r") as f:
     prompts_data = json.load(f)
 
 prompts = pd.read_csv("sampled.csv")
@@ -100,7 +100,7 @@ for j in range(5):
         # neg_prompt = "low quality, blurry, bad lighting, poor detail"
         ours_starts = time.time()
         torch.cuda.reset_peak_memory_stats()
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=1, offset=-0.5)
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=4, offset=0.1)
         ours_time += time.time() - ours_starts
         ours_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
         
