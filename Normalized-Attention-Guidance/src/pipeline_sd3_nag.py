@@ -600,7 +600,6 @@ class NAGStableDiffusion3Pipeline(StableDiffusion3Pipeline):
                 pooled_prompt_embeds = torch.cat([pooled_prompt_embeds, original_pooled_prompt_embeds], dim=0)
             else:
                 pooled_prompt_embeds = torch.cat([pooled_prompt_embeds, pooled_prompt_embeds], dim=0)
-        print(self.do_normalized_attention_guidance)
         # 4. Prepare latent variables
         num_channels_latents = self.transformer.config.in_channels
         latents = self.prepare_latents(

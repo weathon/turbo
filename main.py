@@ -20,7 +20,7 @@ if "pipe" not in locals():
       torch_dtype=torch.bfloat16,
   )
 pipe = pipe.to("cuda")
-# pipe.set_progress_bar_config(disable=True)
+pipe.set_progress_bar_config(disable=True)
 import random
 
 
