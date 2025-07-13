@@ -55,17 +55,17 @@ import time
 # for i in prompts["prompt"]:
 
 futures = []
-
+import tqdm
 def run(scale, offset, seed):
     import wandb
-    wandb.init(project="VSF", config={"scale": scale, "offset": offset, "seed": seed}, name=f"scale_{scale}_offset_{offset}_seed_{seed}")
+    wandb.init(project="VSF", config={"scale": scale, "offset": offset, "seed": seed}, reinit="finish_previous", name=f"scale_{scale}_offset_{offset}_seed_{seed}")
     os.system("mkdir -p res/" + wandb.run.id)
     run_id = wandb.run.id
     futures = []
     with open("res/" + run_id + "/preview.md", "a") as f:
         f.write(f"# {run_id}\n scale: {scale}, offset: {offset}, seed: {seed}\n")
         
-    for idx, i in enumerate(prompts_data):
+    for idx, i in enumerate(tqdm.tqdm(prompts_data)):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
