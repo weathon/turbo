@@ -58,7 +58,7 @@ futures = []
 
 def run(scale, offset, seed):
     import wandb
-    wandb.init(project="VSF", config={"scale": scale, "offset": offset, "seed": seed}, reinit="finish_previous", name=f"scale_{scale}_offset_{offset}_seed_{seed}")
+    wandb.init(project="VSF", config={"scale": scale, "offset": offset, "seed": seed}, name=f"scale_{scale}_offset_{offset}_seed_{seed}")
     os.system("mkdir -p res/" + wandb.run.id)
     run_id = wandb.run.id
     futures = []
