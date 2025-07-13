@@ -58,6 +58,7 @@ wandb.init(project="VSF_benchmark")
 
 import tqdm
 
+
 scores = np.zeros((2, 2))
 total = 0
 lock = asyncio.Lock()
@@ -65,22 +66,24 @@ lock = asyncio.Lock()
 async def judge_async(image_ours, prompt, neg_prompt):
     global scores, total
     delta = await asyncio.to_thread(ask_gpt, image_ours, image_ours, prompt, neg_prompt)
+
     delta = delta.T
-    async with lock:
+    with lock:
         scores += delta
         total += 1
         df = pd.DataFrame(
             scores / total,
-            columns=["positive", "negative"],
+            columns=["positive", "negative", "quality"],
             index=["ours", "vanilla"],
         )
-    print("ID: ", total)
     print("delta:\n", delta)
     print(df)
+
     wandb.log({
         "step": total,
         "score_board": wandb.Table(data=df),
     })
+
 
 async def run(run_id, scale, offset):
     run_id = f"{run_id:03d}"
@@ -100,12 +103,15 @@ async def run(run_id, scale, offset):
         
             
     tasks = []
+
     for idx, i in enumerate(tqdm.tqdm(prompts_data)):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
         image_ours.save(f"benchmark/{run_id}/ours_{idx:03d}.png")
+
         tasks.append(asyncio.create_task(judge_async(image_ours, prompt, neg_prompt)))
+
         wandb.log({
             "ours": wandb.Image(image_ours, caption=f"+: {prompt}\n -: {neg_prompt}"),
         })
@@ -114,6 +120,7 @@ async def run(run_id, scale, offset):
             f.write(f"**Prompt:** {prompt}\n")
             f.write(f"**Negative Prompt:** {neg_prompt}\n")
             f.write(f"![ours](ours_{idx:03d}.png)\n\n")
+
 
     await asyncio.gather(*tasks)
         
@@ -131,3 +138,9 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
     
+
+for f in tasks:
+    f.result()
+
+loop.call_soon_threadsafe(loop.stop)
+loop_thread.join()
