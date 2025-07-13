@@ -22,17 +22,12 @@ class Score(BaseModel):
     image_negative: float
 
 
-def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> list[Score]:
+def ask_gpt(image1: Image.Image, pos: str, neg: str) -> list[Score]:
     buf1 = io.BytesIO()
     image1 = image1.resize((448, 448))
     image1.save(buf1, format="PNG")
     b64_1 = base64.b64encode(buf1.getvalue()).decode("utf-8")
-
-    buf2 = io.BytesIO()
-    image2.save(buf2, format="PNG")
-    image2 = image2.resize((448, 448))
-    b64_2 = base64.b64encode(buf2.getvalue()).decode("utf-8")
-
+    
     prompt = (
         f"You will get 1 image, you should rate it from 0-10 based on how well they follow the positive prompt and quality of the image ({pos}),"
         f"and how well they AVOID the negative prompt ({neg}), that means the more *unrelated* the negative prompt is to the image the higher score, only give 10 if the negative item is completely avoided without any artifacts, "
@@ -54,22 +49,9 @@ def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> lis
     )
 
     answer_first = completion.choices[0].message.parsed
-
-    completion = client.beta.chat.completions.parse(
-        model="o4-mini",
-        messages=[
-            {"role": "user", "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_2}"}},
-            ]},
-        ],
-        response_format=Score,
-        reasoning_effort="low"
-    )
-
-    answer_second = completion.choices[0].message.parsed
-
-
-
-    answer = np.array(((answer_first.image_positive_and_quality, answer_second.image_positive_and_quality), (answer_first.image_negative, answer_second.image_negative)))
+    
+    answer = np.array((
+        answer_first.image_positive_and_quality,
+        answer_first.image_negative
+    )).reshape(1, 2)
     return answer
