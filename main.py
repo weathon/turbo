@@ -11,7 +11,6 @@ sys.path.append("Normalized-Attention-Guidance")
 import torch
 from processor import JointAttnProcessor2_0
 from src.pipeline_sd3_nag import NAGStableDiffusion3Pipeline
-from pipeline import StableDiffusion3Pipeline
 
 model_id = "stabilityai/stable-diffusion-3.5-large-turbo"
 if "pipe" not in locals():
@@ -79,6 +78,6 @@ def run(scale, offset, seed):
 
 for i in range(36):
     seed = 42
-    scale = random.uniform(0.0, 2.0)
+    scale = random.uniform(0.0, 4.0)
     offset = random.uniform(0.0, 0.2)
     run(seed=seed, scale=scale, offset=offset)
