@@ -36,9 +36,10 @@ def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> lis
     prompt = (
         f"You will get 1 image, you should rate it from 0-10 based on how well they follow the positive prompt and quality of the image ({pos}),"
         f"and how well they AVOID the negative prompt ({neg}), that means the more *unrelated* the negative prompt is to the image the higher score, only give 10 if the negative item is completely avoided without any artifacts, "
-        f"For each item you can rate from 0.0-10.0, 0 means bad and 10 means good. Your score should be fine grained to 1"
+        f"For each item you can rate from 0.0-10.0, 0 means bad and 10 means good. Your score should be fine grained to 1. "
+        f"Be very strict when evaluating how well the image matches the positive prompt and the overall quality. Only give a 10 if it perfectly matches the positive prompt and has flawless quality. "
         f"Important: When the negative prompt is contradicted with positive prompt or quality following the negative prompt should not be a reason to decrease score for the positive and quality score. (such as negative prompt being 'car' while positive being 'New York street', showing no cars should not be a reason to decrease score for positive, even though it does not look like a New York street anymore. Similar goes for removing an important part of an item, like a car but with negative prompt of wheels, removing wheels making it less of a car, however, when you rate it, you should NOT decrease the score based on this) "
-    ) 
+    )
 
     completion = client.beta.chat.completions.parse(
         model="o4-mini",

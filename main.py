@@ -25,6 +25,7 @@ import random
 
 
 import pandas as pd
+import asyncio
 
 try:
     from google.colab import drive
@@ -35,8 +36,6 @@ try:
 except ImportError:
     COLAB = False
     
-import asyncio
-import threading
 
 
 from ours import inference
@@ -59,21 +58,15 @@ wandb.init(project="VSF_benchmark")
 
 import tqdm
 
-scores = np.zeros((2, 3))
+
+scores = np.zeros((2, 2))
 total = 0
-lock = threading.Lock()
+lock = asyncio.Lock()
 
-loop = asyncio.new_event_loop()
-def _run_loop(loop: asyncio.AbstractEventLoop):
-    asyncio.set_event_loop(loop)
-    loop.run_forever()
-
-loop_thread = threading.Thread(target=_run_loop, args=(loop,), daemon=True)
-loop_thread.start()
-
-async def judge_async(image_ours, image_nag, prompt, neg_prompt):
+async def judge_async(image_ours, prompt, neg_prompt):
     global scores, total
-    delta = await asyncio.to_thread(ask_gpt, image_ours, image_nag, prompt, neg_prompt)
+    delta = await asyncio.to_thread(ask_gpt, image_ours, image_ours, prompt, neg_prompt)
+
     delta = delta.T
     with lock:
         scores += delta
@@ -86,9 +79,13 @@ async def judge_async(image_ours, image_nag, prompt, neg_prompt):
     print("delta:\n", delta)
     print(df)
 
-tasks = []        
+    wandb.log({
+        "step": total,
+        "score_board": wandb.Table(data=df),
+    })
 
-def run(run_id, scale, offset):
+
+async def run(run_id, scale, offset):
     run_id = f"{run_id:03d}"
     seed = 42
     os.system("mkdir -p benchmark/" + run_id)
@@ -104,17 +101,17 @@ def run(run_id, scale, offset):
         f.write(f"**Seed:** {seed}\n\n")
         f.write(f"**WandB Run ID:** {wandb.run.id}\n\n")
         
+            
+    tasks = []
+
     for idx, i in enumerate(tqdm.tqdm(prompts_data)):
         prompt = i["pos"]
         neg_prompt = i["neg"]
         image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
         image_ours.save(f"benchmark/{run_id}/ours_{idx:03d}.png")
-        tasks.append(
-            asyncio.run_coroutine_threadsafe(
-                judge_async(image_ours, prompt, neg_prompt),
-                loop,
-            )
-        )
+
+        tasks.append(asyncio.create_task(judge_async(image_ours, prompt, neg_prompt)))
+
         wandb.log({
             "ours": wandb.Image(image_ours, caption=f"+: {prompt}\n -: {neg_prompt}"),
         })
@@ -123,21 +120,23 @@ def run(run_id, scale, offset):
             f.write(f"**Prompt:** {prompt}\n")
             f.write(f"**Negative Prompt:** {neg_prompt}\n")
             f.write(f"![ours](ours_{idx:03d}.png)\n\n")
-    
-    return tasks
 
-def main():
-    all_tasks = []
+
+    await asyncio.gather(*tasks)
+        
+async def main():
     for i in range(36):
         run_id = i
         scale = random.uniform(0.0, 2.0)
         offset = random.uniform(0.0, 0.4)
         print(f"Running {run_id} with scale {scale:.2f} and offset {offset:.2f}")
-        tasks = run(run_id, scale, offset)
-        all_tasks.extend(tasks)
-        
+        await run(run_id, scale, offset)
+
         if COLAB:
             os.system(f"zip -r {drive_path}/{run_id}.zip benchmark/{run_id}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
     
 
 for f in tasks:
