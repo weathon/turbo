@@ -29,8 +29,7 @@ import pandas as pd
 import asyncio
 import threading
 
-import wandb
-wandb.init(project="VSF")
+
 
 from ours import inference
 import numpy as np
@@ -42,36 +41,6 @@ scores = np.zeros((2, 2))
 total = 0
 lock = threading.Lock()
 
-loop = asyncio.new_event_loop()
-def _run_loop(loop: asyncio.AbstractEventLoop):
-    asyncio.set_event_loop(loop)
-    loop.run_forever()
-
-loop_thread = threading.Thread(target=_run_loop, args=(loop,), daemon=True)
-loop_thread.start()
-
-async def judge_async(image_ours, image_nag, prompt, neg_prompt):
-    global scores, total, wandb
-    delta = await asyncio.to_thread(ask_gpt, image_ours, image_nag, prompt, neg_prompt)
-    delta = delta.T
-    with lock:
-        scores += delta
-        total += 1
-        df = pd.DataFrame(
-            scores / total,
-            columns=["positive", "negative"],
-            index=["ours", "vanilla"],
-        )
-    print("ID: ", total)
-    print("delta:\n", delta)
-    print(df)
-    wandb.log({
-        "step": total,
-        "score_board": wandb.Table(
-            data=df,
-        ),
-    })
-    
 
 with open("prompts2.json", "r") as f:
     prompts_data = json.load(f)
@@ -84,67 +53,30 @@ import os
 import time
 
 # for i in prompts["prompt"]:
-os.system("mkdir -p res/" + wandb.run.id)
-run_id = wandb.run.id
-futures = []
-ours_time = 0
-nag_time = 0
-ours_max_mem = 0
-nag_max_mem = 0
 
-for seed in [42, 0, 1, 4242, 1234]:
+futures = []
+def run(scale, offset, seed):
+    import wandb
+    os.system("mkdir -p res/" + wandb.run.id)
+    run_id = wandb.run.id
+    futures = []
+    with open("res/" + run_id + "/preview.md", "a") as f:
+        f.write(f"# {run_id}\n scale: {scale}, offset: {offset}, seed: {seed}\n")
+        
     for idx, i in enumerate(prompts_data):
         prompt = i["pos"]
         neg_prompt = i["neg"]
-        # neg_prompt = "low quality, blurry, bad lighting, poor detail"
-        ours_starts = time.time()
-        torch.cuda.reset_peak_memory_stats()
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=2.5, offset=0.0) #2.5
-        ours_time += time.time() - ours_starts
-        ours_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
-        
-        nag_starts = time.time() 
-        torch.cuda.reset_peak_memory_stats()
-        for block in pipe.transformer.transformer_blocks:
-            block.attn.processor = NAGJointAttnProcessor2_0()
+        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
 
-        image_nag = pipe(
-            prompt,
-            nag_negative_prompt=neg_prompt,
-            generator=torch.manual_seed(seed),
-            guidance_scale=0.,
-            nag_scale=7,
-            num_inference_steps=8,
-            nag_alpha=0.5,
-            nag_tau=5
-        ).images[0]
-        nag_time += time.time() - nag_starts
-        nag_max_mem += torch.cuda.max_memory_allocated() / 1024 / 1024 / 1024
-        # most RAM is model not data, because data is only one layer, no activation
-        
-        futures.append(
-            asyncio.run_coroutine_threadsafe(
-                judge_async(image_ours, image_nag, prompt, neg_prompt),
-                loop,
-            )
-        )
-        frame = Image.fromarray(
-                    np.concatenate([np.array(image_ours), np.array(image_nag)], axis=1)
-                )
-        
-        wandb.log({
-            "img": wandb.Image(frame,caption=f"+: {prompt}\n -: {neg_prompt}"),
-            "ours_time": ours_time / (idx + 1),
-            "nag_time": nag_time / (idx + 1),
-            "ours_max_mem": ours_max_mem / (idx + 1),
-            "nag_max_mem": nag_max_mem / (idx + 1),
-        })
-        frame.save(f"res/{run_id}/{idx}.png")
+        image_ours.save(f"res/{run_id}/{idx}.png")
         with open("res/" + run_id + "/preview.md", "a") as f:
-            f.write(f"![{idx}]({idx}.png)\n")
+            f.write(f"![{idx}]({idx}.png)\n") 
         
-for f in futures:
-    f.result()
+        wandb.log({"image_ours": wandb.Image(image_ours, caption=f"+: {prompt}\n -:{neg_prompt}"), 
+                   "scale": scale, "offset": offset, "seed": seed}, step=idx)
 
-loop.call_soon_threadsafe(loop.stop)
-loop_thread.join()
+for i in range(36):
+    seed = 42
+    scale = random.uniform(0.0, 2.0)
+    offset = random.uniform(0.0, 0.2)
+    run(seed=seed, scale=scale, offset=offset)

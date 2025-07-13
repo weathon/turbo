@@ -54,21 +54,6 @@ def ask_gpt(image1: Image.Image, image2: Image.Image, pos: str, neg: str) -> lis
 
     answer_first = completion.choices[0].message.parsed
 
-    completion = client.beta.chat.completions.parse(
-        model="o4-mini",
-        messages=[
-            {"role": "user", "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_2}"}},
-            ]},
-        ],
-        response_format=Score,
-        reasoning_effort="low"
-    )
 
-    answer_second = completion.choices[0].message.parsed
-
-
-
-    answer = np.array(((answer_first.image_positive_and_quality, answer_second.image_positive_and_quality), (answer_first.image_negative, answer_second.image_negative)))
+    answer = np.array(((answer_first.image_positive_and_quality, answer_first.image_positive_and_quality), (answer_first.image_negative, answer_first.image_negative)))
     return answer
