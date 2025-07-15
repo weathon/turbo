@@ -71,7 +71,7 @@ def run():
             nag_negative_prompt=neg_prompt,
             generator=torch.manual_seed(seed),
             guidance_scale=0.,
-            nag_scale=0,#5,
+            nag_scale=0,
             num_inference_steps=8,
             nag_alpha=0.25,
             nag_tau=2.5

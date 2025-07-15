@@ -41,7 +41,7 @@ total = 0
 lock = threading.Lock()
 
 
-with open("prompts2.json", "r") as f:
+with open("VSF/prompts/dev_prompts.json", "r") as f:
     prompts_data = json.load(f)
 
 prompts = pd.read_csv("sampled.csv")
@@ -58,26 +58,24 @@ import tqdm
 def run(scale, offset, seed):
     import wandb
     wandb.init(project="VSF", config={"scale": scale, "offset": offset, "seed": seed}, reinit="finish_previous", name=f"scale_{scale}_offset_{offset}_seed_{seed}")
-    os.system("mkdir -p res/" + wandb.run.id)
+    os.system("mkdir -p test/" + wandb.run.id)
     run_id = wandb.run.id
-    futures = []
-    with open("res/" + run_id + "/preview.md", "a") as f:
+    futures = [] 
+    with open("test/" + run_id + "/preview.md", "a") as f:
         f.write(f"# {run_id}\n scale: {scale}, offset: {offset}, seed: {seed}\n")
-        
-    for idx, i in enumerate(tqdm.tqdm(prompts_data)):
-        prompt = i["pos"]
-        neg_prompt = i["neg"]
-        image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
+    
+    for seed_delta in range(5):        
+        seed += 1
+        for idx, i in enumerate(tqdm.tqdm(prompts_data)):
+            prompt = i["prompt"]
+            neg_prompt = i["missing_element"]
+            image_ours = inference(pipe, prompt, neg_prompt, seed=seed, scale=scale, offset=offset)
 
-        image_ours.save(f"res/{run_id}/{idx}.png")
-        with open("res/" + run_id + "/preview.md", "a") as f:
-            f.write(f"![{idx}]({idx}.png)\n") 
-        
-        wandb.log({"image_ours": wandb.Image(image_ours, caption=f"+: {prompt}\n -:{neg_prompt}"), 
-                   "scale": scale, "offset": offset, "seed": seed}, step=idx)
+            image_ours.save(f"test/{run_id}/{idx}.png")
+            with open("test/" + run_id + "/preview.md", "a") as f:
+                f.write(f"![{idx}]({idx}.png)\n") 
+            
+            wandb.log({"image_ours": wandb.Image(image_ours, caption=f"+: {prompt}\n -:{neg_prompt}"), 
+                    "scale": scale, "offset": offset, "seed": seed}, step=idx)
 
-for i in range(36):
-    seed = 42
-    scale = random.uniform(0.0, 4.0)
-    offset = random.uniform(0.0, 0.2)
-    run(seed=seed, scale=scale, offset=offset)
+run(3.25, 0.1, 2025)
